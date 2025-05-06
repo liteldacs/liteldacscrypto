@@ -15,7 +15,6 @@
 #define SESSION_KEY_EXPIRE_TIME 365 // 会话密钥超时时间
 #define BLOCK_SIZE 16 // 数据分组长度
 
-#ifndef USE_GMSSL
 // 用于创建随机数种子索引表时的描述
 static km_field_desc km_create_randseeds_table_fields[] = {
         // 密钥结构体字段描述
@@ -1182,26 +1181,25 @@ l_km_err km_key_import(const char *db_name, const char *table_name, const char *
 km_keypkg_t *
 derive_key(void *kdk_handle, enum KEY_TYPE key_type, uint32_t key_len, const char *owner1, const char *owner2,
            uint8_t *rand, uint32_t rand_len, void **key_handle) {
-    void *DeviceHandle, *hSessionHandle;
 
-    if (SDF_OpenDevice(&DeviceHandle) != SDR_OK) {
-        fprintf(stderr, "Error in derive: SDF_OpenDevice failed!\n");
-        return NULL;
-    }
-
-    if (SDF_OpenSession(DeviceHandle, &hSessionHandle) != SDR_OK) {
-        fprintf(stderr, "Error in derive: SDF_OpenSession failed!\n");
-        SDF_CloseDevice(DeviceHandle);
-        return NULL;
-    }
+    // if (SDF_OpenDevice(&DeviceHandle) != SDR_OK) {
+    //     fprintf(stderr, "Error in derive: SDF_OpenDevice failed!\n");
+    //     return NULL;
+    // }
+    //
+    // if (SDF_OpenSession(DeviceHandle, &hSessionHandle) != SDR_OK) {
+    //     fprintf(stderr, "Error in derive: SDF_OpenSession failed!\n");
+    //     SDF_CloseDevice(DeviceHandle);
+    //     return NULL;
+    // }
 
     key_len = key_len > 16 ? 16 : key_len; // 导入密钥 返回密钥句柄 截断 只取前16字节
     km_keymetadata_t *meta = km_key_metadata_new(owner1, owner2, key_type, key_len, SESSION_KEY_EXPIRE_TIME);
     km_keypkg_t *pkg = km_key_pkg_new(meta, NULL, FALSE);
     if (!pkg) {
         fprintf(stderr, "Error in derive: km_key_pkg_new failed!\n");
-        SDF_CloseSession(hSessionHandle);
-        SDF_CloseDevice(DeviceHandle);
+        // SDF_CloseSession(hSessionHandle);
+        // SDF_CloseDevice(DeviceHandle);
         return NULL;
     }
 
@@ -1218,8 +1216,8 @@ derive_key(void *kdk_handle, enum KEY_TYPE key_type, uint32_t key_len, const cha
         // 释放已经分配的内存
         free(key);
         free(salt);
-        SDF_CloseSession(hSessionHandle);
-        SDF_CloseDevice(DeviceHandle);
+        // SDF_CloseSession(hSessionHandle);
+        // SDF_CloseDevice(DeviceHandle);
         return NULL;
     }
     uint32_t salt_len = 16; // 取前16byte输入pbkdf
@@ -1241,8 +1239,9 @@ derive_key(void *kdk_handle, enum KEY_TYPE key_type, uint32_t key_len, const cha
         // //printbuff("hash_of_rand before pbkdf", hash_of_rand, 32);
 
         // //printbuff("salt before SDF_Encrypt", salt, salt_len);
-        int ret = SDF_Encrypt(hSessionHandle, kdk_handle, ALGO_ENC_AND_DEC, hash_of_keytype, hash_of_rand, 32, salt,
-                              &salt_len);
+        int ret = km_encrypt(kdk_handle, ALGO_ENC_AND_DEC, hash_of_keytype, hash_of_rand, 32, salt, &salt_len, FALSE);
+        // int ret = SDF_Encrypt(hSessionHandle, kdk_handle, ALGO_ENC_AND_DEC, hash_of_keytype, hash_of_rand, 32, salt,
+        //                       &salt_len);
         if (ret != SDR_OK) {
             fprintf(stderr, "Error in derive : km_encrypt failed! %08x\n", ret);
             break;
@@ -1255,6 +1254,7 @@ derive_key(void *kdk_handle, enum KEY_TYPE key_type, uint32_t key_len, const cha
             fprintf(stderr, "Error in derive : km_pbkdf2 failed!\n");
             break;
         }
+
 
         // print_key_metadata(pkg->meta_data);
 
@@ -1285,8 +1285,13 @@ derive_key(void *kdk_handle, enum KEY_TYPE key_type, uint32_t key_len, const cha
         uint32_t cipher_len;
 
         /* 主密钥加密 */
-        if (SDF_Encrypt(hSessionHandle, kek_handle, ALGO_ENC_AND_DEC, iv_enc, key, key_len, pkg->key_cipher,
-                        &cipher_len)) {
+        ;
+        // if (SDF_Encrypt(hSessionHandle, kek_handle, ALGO_ENC_AND_DEC, iv_enc, key, key_len, pkg->key_cipher,
+        //                 &cipher_len)) {
+        //     fprintf(stderr, "Error in derive : SDF_Encrypt failed!\n");
+        //     break;
+        // }
+        if (km_encrypt(kek_handle, ALGO_ENC_AND_DEC, iv_enc, key, key_len, pkg->key_cipher, &cipher_len, FALSE)) {
             fprintf(stderr, "Error in derive : SDF_Encrypt failed!\n");
             break;
         }
@@ -1304,10 +1309,11 @@ derive_key(void *kdk_handle, enum KEY_TYPE key_type, uint32_t key_len, const cha
             fprintf(stderr, "Error in derive : SDF_CalculateMAC failed!\n");
             break;
         }
+
         pkg->chck_alg = ALGO_MAC;
         pkg->meta_data->state = ACTIVE;
 
-        if (key_handle != NULL && SDF_ImportKey(hSessionHandle, key, key_len, key_handle)) {
+        if (key_handle != NULL && km_import_key(key, key_len, key_handle)) {
             fprintf(stderr, "Error in derive : SDF_ImportKey\n");
             break;
         }
@@ -1321,12 +1327,12 @@ derive_key(void *kdk_handle, enum KEY_TYPE key_type, uint32_t key_len, const cha
     free(hash_of_rand);
 
     // 销毁内存中的密钥 关闭会话
-    if (hSessionHandle != NULL) {
-        SDF_CloseSession(hSessionHandle);
-    }
-    if (DeviceHandle != NULL) {
-        SDF_CloseDevice(DeviceHandle);
-    }
+    // if (hSessionHandle != NULL) {
+    //     SDF_CloseSession(hSessionHandle);
+    // }
+    // if (DeviceHandle != NULL) {
+    //     SDF_CloseDevice(DeviceHandle);
+    // }
 
     return pkg;
 }
@@ -1493,6 +1499,7 @@ km_derive_key(uint8_t *db_name, uint8_t *table_name, uint8_t *id, uint32_t key_l
                     fprintf(stderr, "[**sgw derive_key kas-sgw error**]\n");
                     break;
                 }
+
 
                 // print_key_pkg(pkg);
                 // mid = clock();
@@ -2196,7 +2203,7 @@ l_km_err write_keypkg_to_file(const char *filename, km_keypkg_t *pkg) {
         fwrite(pkg->key_cipher, sizeof(uint8_t), MAX_KEY_CIPHER_LEN, file); // Write key
         // write iv
         fwrite(&pkg->iv_len, sizeof(uint16_t), 1, file);
-        fwrite(pkg->iv, sizeof(uint8_t), MAX_IV_LEN, file);
+        fwrite(pkg->iv, sizeof(uint8_t), LD_MAX_IV_LEN, file);
         // write chck
         fwrite(&pkg->chck_alg, sizeof(uint16_t), 1, file);
         fwrite(&pkg->chck_len, sizeof(uint32_t), 1, file);
@@ -2242,7 +2249,7 @@ km_keypkg_t *read_keypkg_from_file(const char *filename) {
     fread(pkg->key_cipher, sizeof(uint8_t), MAX_KEY_CIPHER_LEN, file); // Read key
     // Read iv
     fread(&pkg->iv_len, sizeof(uint16_t), 1, file);
-    fread(pkg->iv, sizeof(uint8_t), MAX_IV_LEN, file);
+    fread(pkg->iv, sizeof(uint8_t), LD_MAX_IV_LEN, file);
     // Read chck
     fread(&pkg->chck_alg, sizeof(uint16_t), 1, file);
     fread(&pkg->chck_len, sizeof(uint32_t), 1, file);
@@ -2599,13 +2606,13 @@ enum STATE str_kstate(const uint8_t *state_str) {
  */
 uint8_t *chck_algo_str(uint16_t chck_algo) {
     switch (chck_algo) {
-        case ALGO_ENC_AND_DEC:
+        case SGD_SM4_CBC:
             return ("SGD_SM4_CBC");
             break;
-        case ALGO_MAC:
+        case SGD_SM4_MAC:
             return ("SGD_SM4_MAC");
             break;
-        case ALGO_WITH_KEK:
+        case SGD_SM4_ECB:
             return ("SGD_SM4_ECB");
             break;
         case ALGO_HASH:
@@ -2645,7 +2652,7 @@ int str_to_chck_algo(const char *algo_str) {
  * @param[in] hex_str
  * @return 字节序列
  */
-uint8_t *hex_to_bytes(const char *hex_str) {
+uint8_t *ld_hex_to_bytes(const char *hex_str) {
 
     size_t len = strlen(hex_str);
     uint8_t *bytes = malloc(sizeof(uint8_t) * len / 2); // 原始字节数据的长度是字符串长度的一半
@@ -2791,6 +2798,8 @@ km_keypkg_t *km_key_pkg_new(km_keymetadata_t *meta, uint8_t *key, bool is_encryp
                 }
             }
         } else {
+
+                fprintf(stderr, "}}}}}}}}}}}}}}}}}}}}}}}}}}\n");
             uint32_t kek_index = 1;
             void *kek_handle;
             memset(keypkg->kek_cipher, 0, 16);
@@ -2893,7 +2902,6 @@ void pkcs7_unpadding(uint8_t *data, uint32_t *data_len) {
     *data_len -= padding_length;
 }
 
-#endif
 
 /*
 //

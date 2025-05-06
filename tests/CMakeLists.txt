@@ -7,6 +7,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 set(tests
         enc_dec_2
+        gmssl
         #padding
         # kdistribute
         # db         # 密钥库增删改查相关

@@ -17,9 +17,8 @@
 #define MAX_OWENER_LEN 16
 #define MAX_KEK_CIPHER_LEN 64
 #define MAX_KEY_CIPHER_LEN 64
-#define MAX_IV_LEN 16
+#define LD_MAX_IV_LEN 16
 #define MAX_CHCK_LEN 32
-#define ALGO_WITH_KEK SGD_SM4_ECB    // generatekeywithkek importkeywithkek接口调用的算法
 #define ALGO_ENC_AND_DEC SGD_SM4_CBC // 加解密调用的算法
 #define ALGO_MAC SGD_SM4_MAC         // MAC调用的算法
 #define ALGO_HASH SGD_SM3            // hash调用的算法
@@ -140,7 +139,7 @@ typedef struct KeyPkg {
     uint32_t kek_cipher_len;
     uint8_t key_cipher[MAX_KEY_CIPHER_LEN]; // 密钥 存储时用密码卡加密，分发时用分发保护密钥加密
     uint16_t iv_len;
-    uint8_t iv[MAX_IV_LEN];           // 初始化向量 用于生成校验码
+    uint8_t iv[LD_MAX_IV_LEN];           // 初始化向量 用于生成校验码
     uint16_t chck_len;                // 校验值长度
     uint16_t chck_alg;                // 校验算法标识
     uint8_t chck_value[MAX_CHCK_LEN]; // 长度为chck_len的校验值
@@ -610,7 +609,7 @@ uint8_t *bytes_to_hex(
  * @param[in] hex_str
  * @return 字节串
  */
-uint8_t *hex_to_bytes(
+uint8_t *ld_hex_to_bytes(
         const char *hex_str);
 
 /**

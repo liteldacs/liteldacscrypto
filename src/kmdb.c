@@ -21,7 +21,6 @@
 #define MAX_QUERY_RESULT_LENGTH 512
 #define SQL_QUERY_SIZE 512
 
-#ifndef USE_GMSSL
 
 /**
  * @brief 根据字段类型返回对应的 SQL 类型字符串
@@ -449,9 +448,9 @@ int query_callback_for_kekhandle(void *data, int argc, char **argv, char **azCol
     }
 
     kek_len = atoi(argv[0]);
-    kek_cipher = hex_to_bytes(argv[1]); // 假设 hex_to_bytes 函数实现了 hex 字符串到字节数组的转换
+    kek_cipher = ld_hex_to_bytes(argv[1]); // 假设 hex_to_bytes 函数实现了 hex 字符串到字节数组的转换
     iv_len = atoi(argv[2]);
-    iv = hex_to_bytes(argv[3]);
+    iv = ld_hex_to_bytes(argv[3]);
 
     if (kek_cipher == NULL || iv == NULL) {
         fprintf(stderr, "[query_callback_for_kekhandle] 内存分配失败\n");
@@ -879,7 +878,7 @@ static int callback_for_query_keyvalue(void *data, int argc, char **argv, char *
     if (argc > 0 && argv[0] != NULL) {
         kek_len = atoi(argv[0]);
         if (kek_len > 0) {
-            kek = hex_to_bytes(argv[1]);
+            kek = ld_hex_to_bytes(argv[1]);
             if (kek == NULL) {
                 fprintf(stderr, "Error: Conversion of kek failed\n");
                 return LD_ERR_KM_CONVERT;
@@ -896,7 +895,7 @@ static int callback_for_query_keyvalue(void *data, int argc, char **argv, char *
     // 获取 key_cipher
     if (argc > 3 && argv[3] != NULL) {
         if (key_len > 0) {
-            key_cipher = hex_to_bytes(argv[3]);
+            key_cipher = ld_hex_to_bytes(argv[3]);
             if (key_cipher == NULL) {
                 fprintf(stderr, "Error: Conversion of key_cipher failed\n");
                 free(kek);
@@ -915,7 +914,7 @@ static int callback_for_query_keyvalue(void *data, int argc, char **argv, char *
     // 获取 iv
     if (argc > 5 && argv[5] != NULL) {
         if (iv_len > 0) {
-            iv_enc = hex_to_bytes(argv[5]);
+            iv_enc = ld_hex_to_bytes(argv[5]);
             memcpy(iv_mac, iv_enc, iv_len);
 
             if (iv_enc == NULL) {
@@ -939,7 +938,7 @@ static int callback_for_query_keyvalue(void *data, int argc, char **argv, char *
         // 获取校验值
         rcvd_chck_value = malloc(sizeof(uint8_t) * check_len);
         calc_chck_value = malloc(sizeof(uint8_t) * check_len);
-        rcvd_chck_value = hex_to_bytes(argv[8]);
+        rcvd_chck_value = ld_hex_to_bytes(argv[8]);
 
         // //log_buf(LOG_WARN, "check", rcvd_chck_value, check_len);
     }
@@ -1151,7 +1150,7 @@ QueryResult_for_rand *query_rand(const char *db_name, const char *table_name, co
         result->rand_len = sqlite3_column_int(stmt, 1);
 
         // 提取随机数
-        uint8_t *rand_value = hex_to_bytes(sqlite3_column_text(stmt, 0));
+        uint8_t *rand_value = ld_hex_to_bytes(sqlite3_column_text(stmt, 0));
         // printbuff("query rand", rand_value, result->rand_len);
         if (rand_value) {
             result->rand = malloc(result->rand_len);
@@ -1586,4 +1585,3 @@ l_km_err alter_keyvalue(uint8_t *db_name, uint8_t *table_name, uint8_t *id, uint
     return LD_KM_OK;
 }
 
-#endif
