@@ -1762,10 +1762,10 @@ km_update_masterkey(uint8_t *dbname, uint8_t *tablename, uint8_t *sgw_name, uint
     QueryResult_for_queryid *qr_assgw = NULL;
     QueryResult_for_subkey *qr_s = NULL;
     QueryResult_for_queryid *qr_nmk = NULL;
-    km_keypkg_t *keypkg_NH; // 更新的NH
+    km_keypkg_t *keypkg_NH = NULL; // 更新的NH
     km_keypkg_t *keypkg_Kasgs = NULL;
-    void *handle_NH;
-    void *handle_asasw;
+    void *handle_NH = NULL;
+    void *handle_asasw = NULL;
 
     uint8_t *rand = malloc(sizeof(uint8_t) * 32);
     uint32_t rand_len;
@@ -1781,7 +1781,7 @@ km_update_masterkey(uint8_t *dbname, uint8_t *tablename, uint8_t *sgw_name, uint
             break;
         }
 
-        fprintf(stderr, "%s %s %s %s", as_name, gs_s_name, gs_t_name, sgw_name);
+        fprintf(stderr, "%s %s %s %s\n", as_name, gs_s_name, gs_t_name, sgw_name);
 
         /* AS端密钥更新 */
         // 查询新密钥id
@@ -1790,6 +1790,7 @@ km_update_masterkey(uint8_t *dbname, uint8_t *tablename, uint8_t *sgw_name, uint
             fprintf(stderr, "NULL Query.\n");
             break;
         }
+        fprintf(stderr, "Count: %d\n", qr_as_kid->count);
         //        else if (qr_as_kid->count > 1) {
         //            fprintf(stderr, "%s %s", qr_as_kid->ids[0], qr_as_kid->ids[1]);
         //            fprintf(stderr, "id isn't unique\n");
@@ -1966,10 +1967,10 @@ km_update_masterkey(uint8_t *dbname, uint8_t *tablename, uint8_t *sgw_name, uint
     key_pkg_free(keypkg_NH);
     key_pkg_free(keypkg_Kasgs);
     keypkg_Kasgs = NULL;
-    free(handle_NH);
-    free(handle_asasw);
-    free(rand);
-    free_query_result_for_subkey(qr_s);
+    if (handle_NH)  free(handle_NH);
+    if (handle_asasw) free(handle_asasw);
+    if (rand) free(rand);
+    if (qr_s) free_query_result_for_subkey(qr_s);
 
     return LD_KM_OK;
 }
