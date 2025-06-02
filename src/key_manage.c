@@ -1781,8 +1781,6 @@ km_update_masterkey(uint8_t *dbname, uint8_t *tablename, uint8_t *sgw_name, uint
             break;
         }
 
-        fprintf(stderr, "%s %s %s %s\n", as_name, gs_s_name, gs_t_name, sgw_name);
-
         /* AS端密钥更新 */
         // 查询新密钥id
         qr_as_kid = query_id(dbname, tablename, as_name, gs_s_name, MASTER_KEY_AS_GS, ACTIVE);
@@ -1790,7 +1788,6 @@ km_update_masterkey(uint8_t *dbname, uint8_t *tablename, uint8_t *sgw_name, uint
             fprintf(stderr, "NULL Query.\n");
             break;
         }
-        fprintf(stderr, "Count: %d\n", qr_as_kid->count);
         //        else if (qr_as_kid->count > 1) {
         //            fprintf(stderr, "%s %s", qr_as_kid->ids[0], qr_as_kid->ids[1]);
         //            fprintf(stderr, "id isn't unique\n");
@@ -1819,7 +1816,6 @@ km_update_masterkey(uint8_t *dbname, uint8_t *tablename, uint8_t *sgw_name, uint
         //            fail_tag = TRUE;
         //            break;
         //        }
-        fprintf(stderr, "Query id_NH OK,id:%s.\n", qr_NH->ids[0]);
 
         // 查询NH密钥值
         query_NH = query_keyvalue(dbname, tablename, qr_NH->ids[0]);

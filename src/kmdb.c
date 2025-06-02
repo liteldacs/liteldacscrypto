@@ -977,10 +977,10 @@ static int callback_for_query_keyvalue(void *data, int argc, char **argv, char *
         return LD_ERR_KM_DECRYPT;
     }
     // //log_buf(LOG_WARN, "decrypted key", key, key_len);
-    for (int i = 0; i < key_len; i++) {
-        fprintf(stderr, "%02x ", key[i]);
-    }
-    fprintf(stderr, "\n");
+    // for (int i = 0; i < key_len; i++) {
+    //     fprintf(stderr, "%02x ", key[i]);
+    // }
+    // fprintf(stderr, "\n");
 
     /* 校验明文密钥完整性 */
     // 计算校验值
