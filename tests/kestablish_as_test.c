@@ -6,7 +6,6 @@
 #include <string.h>
 #include "key_manage.h"
 #include "kmdb.h"
-#include <uuid/uuid.h>
 
 // 用于创建随机数种子索引表时的描述
 static km_field_desc km_create_randseeds_table_fields[] = {
