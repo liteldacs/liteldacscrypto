@@ -2795,8 +2795,6 @@ km_keypkg_t *km_key_pkg_new(km_keymetadata_t *meta, uint8_t *key, bool is_encryp
                 }
             }
         } else {
-
-                fprintf(stderr, "}}}}}}}}}}}}}}}}}}}}}}}}}}\n");
             uint32_t kek_index = 1;
             void *kek_handle;
             memset(keypkg->kek_cipher, 0, 16);
