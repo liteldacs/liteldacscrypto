@@ -349,12 +349,14 @@ l_km_err store_key(const char *db_name, const char *table_name, struct KeyPkg *p
     rc = sqlite3_open(db_name, &db);
     if (rc) {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        free(sql);
         return LD_ERR_KM_OPEN_DB;
     }
 
     // 执行插入数据的SQL语句
     rc = sqlite3_exec(db, sql, 0, 0, &zErrMsg);
     if (rc != SQLITE_OK) {
+        // 非致命错误
         fprintf(stderr, "SQL error: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
     }
@@ -407,6 +409,7 @@ l_km_err store_rand(const char *db_name, const char *table_name, uint8_t *key_id
     uint16_t rand_str_len = rand_len * 2 + 1;
     char *rand_str = bytes_to_hex(rand_len, rand);
     if (!rand_str) {
+        sqlite3_finalize(stmt);
         sqlite3_close(db);
         return LD_ERR_KM_MALLOC;
     }
@@ -513,9 +516,12 @@ QueryResult_for_kekhandle *query_kekhandle(uint8_t *db_name, uint8_t *table_name
     if (rc != SQLITE_OK) {
         fprintf(stderr, "查询失败: %s\n", zErrMsg);
         sqlite3_free(zErrMsg);
+        sqlite3_close(db);
         free(result);
         return NULL;
     }
+
+    sqlite3_close(db);
 
     // 在实际应用中，可能需要更多错误处理逻辑
     if (result->kek_handle == NULL || result->iv == NULL) {
@@ -1530,6 +1536,7 @@ l_km_err alter_keyvalue(uint8_t *db_name, uint8_t *table_name, uint8_t *id, uint
     rc = sqlite3_open(db_name, &db);
     if (rc) {
         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
         return LD_ERR_KM_OPEN_DB;
     }
 

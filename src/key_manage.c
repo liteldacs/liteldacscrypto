@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "key_manage.h"
+
+#include <errno.h>
 #include <time.h>
 #include "kmdb.h"
 #include "km_field.h"
@@ -1110,6 +1112,10 @@ l_km_err km_rkey_import(const char *db_name, const char *table_name, const char 
             break;
         }
         km_keypkg_t *raw_pkg = read_keypkg_from_file(local_rkdir);
+        if (!raw_pkg) {
+            fprintf(stderr, "KEY PKG is null\n");
+            break;
+        }
         remove(local_rkdir);
         // print_key_pkg(raw_pkg);
 
@@ -2218,8 +2224,11 @@ km_keypkg_t *read_keypkg_from_file(const char *filename) {
     // 参数检查
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
+        perror("Error opening file");
         return NULL;
     }
+
+    fprintf(stderr, "!!!!!!!!!!!!!!!!!!\n");
 
     // Read metadata
     km_keymetadata_t *meta_data = malloc(sizeof(km_keymetadata_t));
@@ -2227,11 +2236,19 @@ km_keypkg_t *read_keypkg_from_file(const char *filename) {
         fclose(file);
         return NULL;
     }
-    if (fread(meta_data, sizeof(km_keymetadata_t), 1, file) != 1) {
+    fprintf(stderr, "!!!!!!!!!!!!!!!!!!\n");
+    size_t result = fread(meta_data, sizeof(km_keymetadata_t), 1, file);
+    if (result != 1) {
+        if (ferror(file)) {
+            fprintf(stderr, "Error reading metadata from file: %s\n", strerror(errno));
+        } else if (feof(file)) {
+            fprintf(stderr, "End of file reached while reading metadata\n");
+        }
         free(meta_data);
         fclose(file);
         return NULL;
     }
+    fprintf(stderr, "!!!!!!!!!!!!!!!!!!\n");
 
     km_keypkg_t *pkg = km_key_pkg_new(meta_data, NULL, FALSE);
     // Check if km_key_pkg_new succeeded
@@ -2734,6 +2751,8 @@ void key_meta_data_free(km_keymetadata_t *meta_data) {
 // 外部接口
 km_keypkg_t *km_key_pkg_new(km_keymetadata_t *meta, uint8_t *key, bool is_encrypt) {
     // 分配 km_keypkg_t 结构体的内存
+    int i = 0;
+    usleep(100);
     km_keypkg_t *keypkg = malloc(sizeof(km_keypkg_t));
     if (keypkg == NULL) {
         fprintf(stderr, "Memory allocation failed\n");

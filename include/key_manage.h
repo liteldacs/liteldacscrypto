@@ -118,7 +118,7 @@ enum STATE {
     COMPROMISED,    // 已泄露
     DESTROYED,      // 已销毁
 };
-
+#pragma pack(push, 1) // 禁用内存对齐
 // 密钥属性结构体 用于指定密钥的参数
 typedef struct KeyMetaData {
     uuid_t id;
@@ -144,6 +144,8 @@ typedef struct KeyPkg {
     uint16_t chck_alg;                // 校验算法标识
     uint8_t chck_value[MAX_CHCK_LEN]; // 长度为chck_len的校验值
 } km_keypkg_t;
+
+#pragma pack(pop) // 内存对齐
 
 /*
 ************************************************************************
