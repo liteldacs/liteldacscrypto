@@ -2040,11 +2040,11 @@ l_km_err km_revoke_key(uint8_t *dbname, uint8_t *tablename, uint8_t *id) {
                 // fprintf(stderr, "revoke key %s succeeded.\n", result->subkey_ids[i]);
 
                 // 删除密钥值
-                if (alter_keyvalue(dbname, tablename, result->subkey_ids[i], 0, NULL) != LD_KM_OK) {
-                    fprintf(stderr, "revoke key %s Failed. \n", result->subkey_ids[i]);
-                    fail_tag = TRUE;
-                    break;
-                }
+                // if (alter_keyvalue(dbname, tablename, result->subkey_ids[i], 0, NULL) != LD_KM_OK) {
+                //     fprintf(stderr, "revoke key %s Failed. \n", result->subkey_ids[i]);
+                //     fail_tag = TRUE;
+                //     break;
+                // }
             }
         }
 
@@ -2057,11 +2057,11 @@ l_km_err km_revoke_key(uint8_t *dbname, uint8_t *tablename, uint8_t *id) {
         // fprintf(stderr, "revoke key %s succeeded.\n", id_mk);
 
         // 删除密钥值
-        if (alter_keyvalue(dbname, tablename, id, 0, NULL) != LD_KM_OK) {
-            fprintf(stderr, "revoke key %s Failed. \n", id);
-            fail_tag = TRUE;
-            break;
-        }
+        // if (alter_keyvalue(dbname, tablename, id, 0, NULL) != LD_KM_OK) {
+        //     fprintf(stderr, "revoke key %s Failed. \n", id);
+        //     fail_tag = TRUE;
+        //     break;
+        // }
 
         // 将密钥加入密钥撤销列表
 
