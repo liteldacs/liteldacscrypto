@@ -2228,7 +2228,6 @@ km_keypkg_t *read_keypkg_from_file(const char *filename) {
         return NULL;
     }
 
-    fprintf(stderr, "!!!!!!!!!!!!!!!!!!\n");
 
     // Read metadata
     km_keymetadata_t *meta_data = malloc(sizeof(km_keymetadata_t));
@@ -2236,7 +2235,6 @@ km_keypkg_t *read_keypkg_from_file(const char *filename) {
         fclose(file);
         return NULL;
     }
-    fprintf(stderr, "!!!!!!!!!!!!!!!!!!\n");
     size_t result = fread(meta_data, sizeof(km_keymetadata_t), 1, file);
     if (result != 1) {
         if (ferror(file)) {
@@ -2248,7 +2246,6 @@ km_keypkg_t *read_keypkg_from_file(const char *filename) {
         fclose(file);
         return NULL;
     }
-    fprintf(stderr, "!!!!!!!!!!!!!!!!!!\n");
 
     km_keypkg_t *pkg = km_key_pkg_new(meta_data, NULL, FALSE);
     // Check if km_key_pkg_new succeeded
