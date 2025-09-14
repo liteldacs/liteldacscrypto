@@ -127,7 +127,8 @@ typedef struct KeyMetaData {
     enum KEY_TYPE key_type;
     uint32_t length; // 单位 字节
     enum STATE state;
-    time_t creation_time;
+    // time_t creation_time;
+    struct timeval creation_time2;
     time_t update_cycle; // 单位 天
     // uint8_t counter;
 } km_keymetadata_t;

@@ -2460,7 +2460,7 @@ l_km_err print_key_metadata(struct KeyMetaData *key_info) {
         default:
             fprintf(stderr, "Unknown\n");
     }
-    struct tm *timeinfo = localtime(&key_info->creation_time);
+    struct tm *timeinfo = localtime(&key_info->creation_time2.tv_sec);
     char buffer[80];
     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
     fprintf(stderr, "Effectuation Time: %s\n", buffer);
@@ -2735,7 +2735,8 @@ km_key_metadata_new(const char *owner_1, const char *owner_2, enum KEY_TYPE key_
     keydata->length = key_len;
     keydata->state = PRE_ACTIVATION;
     keydata->update_cycle = update_day;
-    time(&keydata->creation_time);
+    // time(&keydata->creation_time);
+    gettimeofday(&keydata->creation_time2, NULL);
 
     return keydata;
 }

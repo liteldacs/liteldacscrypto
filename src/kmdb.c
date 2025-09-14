@@ -288,11 +288,27 @@ l_km_err store_key(const char *db_name, const char *table_name, struct KeyPkg *p
                 break;
                 case km_ft_timet: // TODO: check
                     if (!strcmp(current_field->name, "creatime")) {
-                        struct tm *timeinfo = localtime(&(p_pkg->meta_data->creation_time));
-                        char buffer[80];
+                        // struct tm *timeinfo = localtime(&(p_pkg->meta_data->creation_time));
+                        // char buffer[80];
+                        // strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+                        // strcat(sql, "'");
+                        // strcat(sql, buffer);
+                        // strcat(sql, "'");
+
+                        // 假设 p_pkg->meta_data->creation_time 是 timeval 结构
+                        struct timeval *tv = &(p_pkg->meta_data->creation_time2);
+                        struct tm *timeinfo = localtime(&(tv->tv_sec));
+
+                        char buffer[84]; // 增加空间容纳毫秒
                         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+
+                        // 添加毫秒部分
+                        char ms_part[5];
+                        snprintf(ms_part, sizeof(ms_part), ".%03ld", tv->tv_usec / 1000);
+
                         strcat(sql, "'");
                         strcat(sql, buffer);
+                        strcat(sql, ms_part);
                         strcat(sql, "'");
                     }
                 break;
